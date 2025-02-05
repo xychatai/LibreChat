@@ -2,8 +2,8 @@ import { useRecoilState } from 'recoil';
 import * as Select from '@ariakit/react/select';
 import { Fragment, useState, memo } from 'react';
 import { FileText, LogOut } from 'lucide-react';
+import { useGetUserBalance, useGetStartupConfig } from 'librechat-data-provider/react-query';
 import { LinkIcon, GearIcon, DropdownMenuSeparator } from '~/components';
-import { useGetStartupConfig, useGetUserBalance } from '~/data-provider';
 import FilesView from '~/components/Chat/Input/Files/FilesView';
 import { useAuthContext } from '~/hooks/AuthContext';
 import useAvatar from '~/hooks/Messages/useAvatar';
@@ -19,6 +19,12 @@ function AccountSettings() {
   const balanceQuery = useGetUserBalance({
     enabled: !!isAuthenticated && startupConfig?.checkBalance,
   });
+
+  // Convert credits to USD (1000 credits = $0.001)
+  const creditsToUSD = (credits: number) => {
+    return (credits / 1000) * 0.001;
+  };
+
   const [showSettings, setShowSettings] = useState(false);
   const [showFiles, setShowFiles] = useRecoilState(store.showFiles);
 
@@ -80,7 +86,7 @@ function AccountSettings() {
           !isNaN(parseFloat(balanceQuery.data)) && (
           <>
             <div className="text-token-text-secondary ml-3 mr-2 py-2 text-sm" role="note">
-              {localize('com_nav_balance')}: ${parseFloat(balanceQuery.data).toFixed(2)}
+              {`Balance: $${creditsToUSD(parseFloat(balanceQuery.data)).toFixed(6)}`}
             </div>
             <DropdownMenuSeparator />
           </>
