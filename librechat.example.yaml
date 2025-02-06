@@ -41,12 +41,34 @@ endpoints:
 speech:
   tts:
     openai:
-      url: 'https://gptapi.xychatai.com/v1/audio/synthesize'
+      url: 'https://api.onechats.ai/v1/audio/speech'
       apiKey: '${TTS_API_KEY}'
       model: 'tts-1'
       voices: ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer']
   stt:
     openai:
       url: 'https://gptapi.xychatai.com/v1/audio/transcriptions'
-      model: 'whisper'  
+      model: 'whisper-1'  
       apiKey: '${STT_API_KEY}'
+interface:
+  privacyPolicy:
+    externalUrl: "https://example.com/privacy"
+    openNewTab: true
+  termsOfService:
+    externalUrl: "https://example.com/terms"
+    openNewTab: true
+    modalAcceptance: true
+    modalTitle: "Terms of Service"
+    modalContent: |
+      # Terms of Service
+      ## Introduction
+      Welcome to LibreChat!
+  endpointsMenu: true
+  modelSelect: false
+  parameters: true
+  sidePanel: true
+  presets: false
+  prompts: true
+  bookmarks: true
+  multiConvo: true
+  agents: true
