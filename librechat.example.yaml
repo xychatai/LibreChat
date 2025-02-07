@@ -3,6 +3,24 @@ cache: true
 
 endpoints:
   custom:
+    - name: "Deepseek"
+      apiKey: "${DEEPSEEK_API_KEY}"
+      baseURL: "https://api.deepseek.com/v1"
+      models:
+        default: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"]
+        fetch: false
+      titleConvo: true
+      titleModel: "deepseek-chat"
+      modelDisplayLabel: "Deepseek"
+    - name: "国产top大模型"
+      apiKey: "${DEEPSEEK1_API_KEY}"
+      baseURL: "https://gptapi.xychatai.com/v1"
+      models:
+        default: [ "deepseek-v3", "deepseek-r1", "qwen-max-latest","glm-4-plus", "yi-lightning"]
+        fetch: false
+      titleConvo: true
+      titleModel: "deepseek-v3"
+      modelDisplayLabel: "chinesemodle"
     - name: "Claude"
       apiKey: "${LibreChat_API_Claude_KEY}"
       iconURL: "https://raw.gitmirror.com/Passerby1011/icon/6cb2a7a0474ec18ff74d4e8d358e08d449403b54/Claude-2.svg"
@@ -16,21 +34,12 @@ endpoints:
       summaryModel: "gpt-3.5-turbo" 
       forcePrompt: false 
       modelDisplayLabel: "Claude"
-    - name: "Deepseek"
-      apiKey: "${DEEPSEEK_API_KEY}"
-      baseURL: "https://api.deepseek.com/v1"
-      models:
-        default: ["deepseek-chat", "deepseek-coder", "deepseek-reasoner"]
-        fetch: false
-      titleConvo: true
-      titleModel: "deepseek-chat"
-      modelDisplayLabel: "Deepseek"
     - name: "gemini"
       apiKey: "${LibreChat_API_gemini_KEY}"
       iconURL: "https://unpkg.com/@lobehub/icons-static-svg@1.14.0/icons/gemini.svg"
-      baseURL: "https://gptapi.xychatai.com/v1/chat/completions"
+      baseURL: "https://gptapi.xychatai.com/v1"
       models: 
-        default: ["gemini-exp-1206","gemini-2.0-flash-exp","gemini-2.0-flash-thinking-exp"]
+        default: ["gemini-exp-1206","gemini-2.0-flash-exp","gemini-2.0-pro-exp-02-05","gemini-2.0-flash-thinking-exp-01-21"]
         fetch: false
       titleConvo: true
       titleModel: "gpt-3.5-turbo" 
@@ -38,6 +47,21 @@ endpoints:
       summaryModel: "gpt-3.5-turbo" 
       forcePrompt: false 
       modelDisplayLabel: "gemini"
+    - name: "groq"
+      apiKey: "${GROQ_API_KEY}"
+      baseURL: "https://gptapi.xychatai.com/v1"
+      models:
+        default: [
+          "llama3-70b-8192",
+          "llama3-8b-8192",
+          "mixtral-8x7b-32768",
+          "grok-2-1212",
+          "grok-2-vision-1212",
+          ]
+        fetch: false
+      titleConvo: true
+      titleModel: "mixtral-8x7b-32768"
+      modelDisplayLabel: "groq"
 speech:
   tts:
     openai:
@@ -50,25 +74,26 @@ speech:
       url: 'https://gptapi.xychatai.com/v1/audio/transcriptions'
       model: 'whisper-1'  
       apiKey: '${STT_API_KEY}'
-interface:
-  privacyPolicy:
-    externalUrl: "https://example.com/privacy"
-    openNewTab: true
-  termsOfService:
-    externalUrl: "https://example.com/terms"
-    openNewTab: true
-    modalAcceptance: true
-    modalTitle: "Terms of Service"
-    modalContent: |
-      # Terms of Service
-      ## Introduction
-      Welcome to LibreChat!
-  endpointsMenu: true
-  modelSelect: false
-  parameters: true
-  sidePanel: true
-  presets: false
-  prompts: true
-  bookmarks: true
-  multiConvo: true
-  agents: true
+# interface:
+#   privacyPolicy:
+#     externalUrl: "https://example.com/privacy"
+#     openNewTab: true
+#   termsOfService:
+#     externalUrl: "https://example.com/terms"
+#     openNewTab: true
+#     modalAcceptance: true
+#     modalTitle: "Terms of Service"
+#     modalContent: |
+#       # Terms of Service
+#       ## Introduction
+#       Welcome to LibreChat!
+#   endpointsMenu: true
+#   modelSelect: true
+#   parameters: true
+#   sidePanel: true
+#   presets: true
+#   prompts: true
+#   bookmarks: true
+#   multiConvo: true
+#   agents: true
+
