@@ -1,10 +1,9 @@
-/* eslint-disable max-len */
 import { z } from 'zod';
 import type { ZodError } from 'zod';
 import type { TModelsConfig } from './types';
 import { EModelEndpoint, eModelEndpointSchema } from './schemas';
-import { fileConfigSchema } from './file-config';
 import { specsConfigSchema, TSpecsConfig } from './models';
+import { fileConfigSchema } from './file-config';
 import { FileSources } from './types/files';
 import { MCPServersSchema } from './mcp';
 
@@ -16,6 +15,7 @@ export const defaultRetrievalModels = [
   'o1-preview',
   'o1-mini-2024-09-12',
   'o1-mini',
+  'o3-mini',
   'chatgpt-4o-latest',
   'gpt-4o-2024-05-13',
   'gpt-4o-2024-08-06',
@@ -32,6 +32,27 @@ export const defaultRetrievalModels = [
   'gpt-4-1106',
 ];
 
+export const excludedKeys = new Set([
+  'conversationId',
+  'title',
+  'iconURL',
+  'greeting',
+  'endpoint',
+  'endpointType',
+  'createdAt',
+  'updatedAt',
+  'expiredAt',
+  'messages',
+  'isArchived',
+  'tags',
+  'user',
+  '__v',
+  '_id',
+  'tools',
+  'model',
+  'files',
+]);
+
 export enum SettingsViews {
   default = 'default',
   advanced = 'advanced',
@@ -43,9 +64,8 @@ export const fileSourceSchema = z.nativeEnum(FileSources);
 type SchemaShape<T> = T extends z.ZodObject<infer U> ? U : never;
 
 // Helper type to determine the default value or undefined based on whether the field has a default
-type DefaultValue<T> = T extends z.ZodDefault<z.ZodTypeAny>
-  ? ReturnType<T['_def']['defaultValue']>
-  : undefined;
+type DefaultValue<T> =
+  T extends z.ZodDefault<z.ZodTypeAny> ? ReturnType<T['_def']['defaultValue']> : undefined;
 
 // Extract default values or undefined from the schema shape
 type ExtractDefaults<T> = {
@@ -145,6 +165,7 @@ export enum AgentCapabilities {
   end_after_tools = 'end_after_tools',
   execute_code = 'execute_code',
   file_search = 'file_search',
+  artifacts = 'artifacts',
   actions = 'actions',
   tools = 'tools',
 }
@@ -218,6 +239,7 @@ export const agentsEndpointSChema = baseEndpointSchema.merge(
       .default([
         AgentCapabilities.execute_code,
         AgentCapabilities.file_search,
+        AgentCapabilities.artifacts,
         AgentCapabilities.actions,
         AgentCapabilities.tools,
       ]),
@@ -446,6 +468,7 @@ export const intefaceSchema = z
       })
       .optional(),
     termsOfService: termsOfServiceSchema.optional(),
+    customWelcome: z.string().optional(),
     endpointsMenu: z.boolean().optional(),
     modelSelect: z.boolean().optional(),
     parameters: z.boolean().optional(),
@@ -455,6 +478,8 @@ export const intefaceSchema = z
     presets: z.boolean().optional(),
     prompts: z.boolean().optional(),
     agents: z.boolean().optional(),
+    temporaryChat: z.boolean().optional(),
+    runCode: z.boolean().optional(),
   })
   .default({
     endpointsMenu: true,
@@ -466,6 +491,8 @@ export const intefaceSchema = z
     bookmarks: true,
     prompts: true,
     agents: true,
+    temporaryChat: true,
+    runCode: true,
   });
 
 export type TInterfaceConfig = z.infer<typeof intefaceSchema>;
@@ -504,6 +531,7 @@ export type TStartupConfig = {
   publicSharedLinksEnabled: boolean;
   analyticsGtmId?: string;
   instanceProjectId: string;
+  bundlerURL?: string;
 };
 
 export const configSchema = z.object({
@@ -618,12 +646,15 @@ export const alternateName = {
   [EModelEndpoint.custom]: 'Custom',
   [EModelEndpoint.bedrock]: 'AWS Bedrock',
   [KnownEndpoints.ollama]: 'Ollama',
+  [KnownEndpoints.deepseek]: 'DeepSeek',
   [KnownEndpoints.xai]: 'xAI',
 };
 
 const sharedOpenAIModels = [
   'gpt-4o-mini',
   'gpt-4o',
+  'gpt-4.5-preview',
+  'gpt-4.5-preview-2025-02-27',
   'gpt-3.5-turbo',
   'gpt-3.5-turbo-0125',
   'gpt-4-turbo',
@@ -642,6 +673,8 @@ const sharedOpenAIModels = [
 ];
 
 const sharedAnthropicModels = [
+  'claude-3-7-sonnet-latest',
+  'claude-3-7-sonnet-20250219',
   'claude-3-5-haiku-20241022',
   'claude-3-5-sonnet-20241022',
   'claude-3-5-sonnet-20240620',
@@ -694,26 +727,27 @@ export const bedrockModels = [
 
 export const defaultModels = {
   [EModelEndpoint.azureAssistants]: sharedOpenAIModels,
-  [EModelEndpoint.assistants]: ['chatgpt-4o-latest', ...sharedOpenAIModels],
+  [EModelEndpoint.assistants]: [...sharedOpenAIModels, 'chatgpt-4o-latest'],
   [EModelEndpoint.agents]: sharedOpenAIModels, // TODO: Add agent models (agentsModels)
   [EModelEndpoint.google]: [
-    'gemini-pro',
-    'gemini-pro-vision',
-    'chat-bison',
-    'chat-bison-32k',
-    'codechat-bison',
-    'codechat-bison-32k',
-    'text-bison',
-    'text-bison-32k',
-    'text-unicorn',
-    'code-gecko',
-    'code-bison',
-    'code-bison-32k',
+    // Shared Google Models between Vertex AI & Gen AI
+    // Gemini 2.0 Models
+    'gemini-2.0-flash-001',
+    'gemini-2.0-flash-exp',
+    'gemini-2.0-flash-lite',
+    'gemini-2.0-pro-exp-02-05',
+    // Gemini 1.5 Models
+    'gemini-1.5-flash-001',
+    'gemini-1.5-flash-002',
+    'gemini-1.5-pro-001',
+    'gemini-1.5-pro-002',
+    // Gemini 1.0 Models
+    'gemini-1.0-pro-001',
   ],
   [EModelEndpoint.anthropic]: sharedAnthropicModels,
   [EModelEndpoint.openAI]: [
-    'chatgpt-4o-latest',
     ...sharedOpenAIModels,
+    'chatgpt-4o-latest',
     'gpt-4-vision-preview',
     'gpt-3.5-turbo-instruct-0914',
     'gpt-3.5-turbo-instruct',
@@ -778,6 +812,10 @@ export const supportsBalanceCheck = {
 };
 
 export const visionModels = [
+  'grok-3',
+  'grok-2-vision',
+  'grok-vision',
+  'gpt-4.5',
   'gpt-4o',
   'gpt-4o-mini',
   'o1',
@@ -826,7 +864,7 @@ export function validateVisionModel({
   return visionModels.concat(additionalModels).some((visionModel) => model.includes(visionModel));
 }
 
-export const imageGenTools = new Set(['dalle', 'dall-e', 'stable-diffusion']);
+export const imageGenTools = new Set(['dalle', 'dall-e', 'stable-diffusion', 'flux']);
 
 /**
  * Enum for collections using infinite queries
@@ -929,6 +967,10 @@ export enum CacheKeys {
    * Key for in-progress messages.
    */
   MESSAGES = 'messages',
+  /**
+   * Key for in-progress flow states.
+   */
+  FLOWS = 'flows',
 }
 
 /**
@@ -1017,6 +1059,10 @@ export enum ErrorTypes {
    * Invalid request error, API rejected request
    */
   NO_SYSTEM_MESSAGES = 'no_system_messages',
+  /**
+   * Google provider returned an error
+   */
+  GOOGLE_ERROR = 'google_error',
 }
 
 /**
@@ -1056,6 +1102,7 @@ export enum ImageDetailCost {
   /**
    * Additional Cost added to High Resolution Total Cost
    */
+  // eslint-disable-next-line @typescript-eslint/no-duplicate-enum-values
   ADDITIONAL = 85,
 }
 
@@ -1126,7 +1173,7 @@ export enum TTSProviders {
 /** Enum for app-wide constants */
 export enum Constants {
   /** Key for the app's version. */
-  VERSION = 'v0.7.6',
+  VERSION = 'v0.7.7-rc1',
   /** Key for the Custom Config's version (librechat.yaml). */
   CONFIG_VERSION = '1.2.1',
   /** Standard value for the first message's `parentMessageId` value, to indicate no parent exists. */
@@ -1196,7 +1243,9 @@ export enum ForkOptions {
   /** Key for including branches */
   INCLUDE_BRANCHES = 'includeBranches',
   /** Key for target level fork (default) */
-  TARGET_LEVEL = '',
+  TARGET_LEVEL = 'targetLevel',
+  /** Default option */
+  DEFAULT = 'default',
 }
 
 /**
